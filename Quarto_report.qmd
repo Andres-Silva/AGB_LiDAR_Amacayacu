@@ -1,0 +1,59 @@
+---
+title: "Estimating Aboveground Biomass (AGB) in a terra firme Amazon forest using a LiDAR approach"
+format: html
+editor: visual
+---
+
+```{r}
+#| label: load
+#| message: false
+targets::tar_load(
+c(plot_allometry,
+plot_agb)
+)
+
+```
+
+## Introduction
+
+Aboveground biomass (AGB) is a key component of the global carbon cycle and is commonly estimated using allometric equations based on individual tree attributes such as diameter at breast height (DBH), height, and wood density (Chave., 2014). While these models have been fundamental for quantifying forest carbon stocks, they are subject to uncertainties arising from measurement errors and limitations in extrapolation across environmental gradients
+
+Recent advances in remote sensing—particularly airborne Light Detection and Ranging (LiDAR)—have enabled the acquisition of high-resolution data on forest structure and topography (Roussel., et al 2020). LiDAR-derived products, such as canopy height models, crown metrics, and detailed digital elevation models, provide new opportunities to refine AGB estimation and to better understand the spatial drivers of forest structure (Jucker., et al 2017). Integrating field-based forest inventories with LiDAR data can improve biomass estimates and offer insights into how environmental heterogeneity shapes forest structure and carbon storage.
+
+In Amazonian terra firme forests (TFF), fine-scale (\~500 m²) species–habitat associations play a fundamental role in structuring plant communities. Microtopographic variation influences water availability through drainage patterns, which in turn affects species distribution, tree architecture, and biomass accumulation (Zuleta., et al 2020). Despite this, the extent to which microtopography controls spatial variation in canopy structure and AGB remains insufficiently understood.
+
+The Amacayacu Forest Dynamics Plot, located in southern Colombia, is part of the ForestGEO network and represents a highly diverse Amazonian TFF. The plot includes multiple forest censuses alongside airborne LiDAR acquisitions, providing a unique opportunity to integrate detailed field and remote sensing data. This project aims to leverage these datasets to investigate how microtopography and canopy structure jointly influence aboveground biomass distribution.
+
+Specifically, this study will address the following questions:
+
+1.  At the individual tree level, are there significant differences in canopy structure (e.g., height and heterogeneity) and crown size distributions between flood-prone low-lying forest and ridgetop terra firme forests?
+
+2.   At the 0.25-ha quadrat level, how does aboveground biomass vary between flood-prone low-lying forest and terra firme forest types within the plot?
+
+3.   At the plot level, to what extent do topographic variables (e.g., slope, elevation, and topographic position index) improve predictions of AGB density compared to models using canopy height?
+
+To address these questions, we will usetree-level census data to estimate AGB for all trees, and delineated canopy crowns from orthoimagery to quantify LiDAR structural attributes of emergent crowns. We will use LiDAR-derived structural and topographic metrics to describe canopy structure and terrain characteristics. Statistical and spatial modeling approaches will be used to quantify relationships between microtopography, canopy structure, and AGB, and to evaluate the predictive power of LiDAR-enhanced models.
+
+This study will contribute to improving biomass estimation methods by incorporating structural information from remote sensing and will advance our understanding of how fine-scale environmental heterogeneity shapes forest structure and carbon storage in tropical ecosystems. The results will also provide insights that are relevant for cross-site comparisons within the ForestGEO network and for scaling ecological processes using remote sensing data.
+
+## Results
+
+#### Height and DBH Allometry
+
+```{r}
+#| label: fig-height-allometry
+#| fig-cap: "Height-DBH allometric relationship from TLS."
+
+plot_allometry
+
+```
+
+#### AGB - CMH
+
+```{r}
+#| label: fig-agb-canopy
+#| fig-cap: "AGB density predicted by Canopy Height Model."
+
+plot_agb
+
+```

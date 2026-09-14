@@ -1,0 +1,17 @@
+# Quarto rendering artifacts
+
+/Quarto_report_files/
+
+#Targets pipeline 
+
+/_targets/
+
+
+#Data folder
+/data/
+
+#R files
+
+.Rhistory
+.RData
+.Ruserdata
