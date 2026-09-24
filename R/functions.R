@@ -141,21 +141,47 @@ predict_response <- function(model, ...) {
  return(predict_data)
 }
 
+predict_observed<-function(model,var_name,...){
+ 
+ data<-data.frame(...) |> 
+  add_epred_draws(model,ndraws = 1000) |> 
+  median_qi() |> 
+  select(any_of(c(var_name,".epred",".lower",".upper"))) |> 
+  mutate_all(.funs = ~log(.))
+ 
+ return(data)
+}
 
 #Plot responses
 plot_response<- function(predict_data,data,x,y,predict_x,x_label,
                          y_label){
+ 
  ggplot()+
-  geom_point(data = data,aes(x = {{x}}, 
-                                y = {{y}}),
+  geom_point(data = data,aes(x = {{x}},y = {{y}}),
              alpha = 0.4)+
   geom_line(data = predict_data,aes(x = {{x}},
                                     y = .prediction))+
   geom_ribbon(data = predict_data,aes(x = {{x}},
                                       ymin = .lower,
-                                      ymax = .upper),
-              alpha = 0.2)+
+                                      ymax = .upper),alpha = 0.2)+
   xlab(x_label)+
   ylab(y_label)+
-   theme_bw()}
+   theme_bw()
+ }
 
+
+plot_observed<-function(data,x,x_label,
+                        y_label){
+ 
+ ggplot(data = data)+
+  geom_point(aes(x = {{x}},y = .epred),
+             alpha = 0.7,size = 0.5)+
+  geom_abline(intercept = 0,slope = 1, linetype = "dashed")+
+  geom_linerange(aes(x = {{x}},ymin = .lower,
+                     ymax = .upper))+
+  coord_equal()+
+  xlab(x_label)+
+  ylab(y_label)+
+  theme_bw()
+ 
+}

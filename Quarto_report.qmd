@@ -1,10 +1,14 @@
 ---
 title: "Estimating Aboveground Biomass (AGB) in a terra firme Amazon forest using a LiDAR approach"
-format: html
+format:
+  html:
+    embed-resources: true
+  docx: default
 editor: visual
 ---
 
 ```{r}
+#| echo: false
 #| label: load
 #| message: false
 targets::tar_load(
@@ -32,15 +36,149 @@ Specifically, this study will address the following questions:
 
 3.   At the plot level, to what extent do topographic variables (e.g., slope, elevation, and topographic position index) improve predictions of AGB density compared to models using canopy height?
 
-To address these questions, we will usetree-level census data to estimate AGB for all trees, and delineated canopy crowns from orthoimagery to quantify LiDAR structural attributes of emergent crowns. We will use LiDAR-derived structural and topographic metrics to describe canopy structure and terrain characteristics. Statistical and spatial modeling approaches will be used to quantify relationships between microtopography, canopy structure, and AGB, and to evaluate the predictive power of LiDAR-enhanced models.
+To address these questions, we will use tree-level census data to estimate AGB for all trees, and delineated canopy crowns from orthoimagery to quantify LiDAR structural attributes of emergent crowns. We will use LiDAR-derived structural and topographic metrics to describe canopy structure and terrain characteristics. Statistical and spatial modeling approaches will be used to quantify relationships between microtopography, canopy structure, and AGB, and to evaluate the predictive power of LiDAR-enhanced models.
 
 This study will contribute to improving biomass estimation methods by incorporating structural information from remote sensing and will advance our understanding of how fine-scale environmental heterogeneity shapes forest structure and carbon storage in tropical ecosystems. The results will also provide insights that are relevant for cross-site comparisons within the ForestGEO network and for scaling ecological processes using remote sensing data.
 
+## Methodology
+
+#### Field data
+
+This study was carried out in the Amacayacu Forest Dynamics Plot (AFDP), located in the Northwestern Amazon (3°48′33.02′′ S and 70°16′04.29′′ W). The AFDP is part of the Forest Global Earth Observatory (ForestGEO; Davies et al., 2021), a global network of large forest plots following standardized methods (Condit, 1998).
+
+The plot is 25 ha in area (500 m × 500 m). The AFDP was established on a transitional area between low dissected tertiary plains and waterlogged soils on low terraces of the alluvial plain (Hoorn, 1994). In general, soils in the AFDP are poor, with high acidity and low base saturation due to the abundance of minerals like kaolinite and quartz.
+
+Currently, we have completed three full census of the AFDP. The first census was carried out from August 2007 to April 2009, in which all trees, shrubs, palms and tree ferns with a diameter at breast height (DBH; 1.3 m) ≥ 10 mm were mapped, tagged, measured and collected for taxonomic identification. The second census was carried out between August 2014 and November 2015, in which we visited the trees to determine survival and measure the DBH of surviving trees. The last census was completed during the second semester of 2026. Specifically, to this study we use the outcome of this last census, considering all the survival trees with DBH measurements and taxonomic information. Taxonomic voucher and identification were made in the Herbario Amazónico Colombiano (COAH) of the Instituto Amazónico de Investigaciones Científicas (SINCHI).
+
+#### Terrestrial LiDAR Scanning (TLS)
+
+We scanned three plots of one hectare each inside AFDP (figure 1). TLS data was collected using a RIEGL VZ-400 laser scanner. We employed a chain sample over a 10 m Cartesian Grid resulting in 11 sampling lines with 11 scan positions along each line (i.e., 0–10) within 1 ha forest plots. Thus, 242 scan were obtained from 121 positions at each 1 ha plot.
+
+TLS data processing involved five main steps i). Individual scanners registration into plot level, ii). Pre - processing of plot-level point clouds, iii). Semantic segmentation, iv). Instance segmentation, v). Quantitative Structural Model (QSM).
+
+The first step consists in individual scanning integration to obtain plot - level points cloud. essentially, this process was employed in the RIEGL RiSCAN Pro software using the function Auto Registration 2 (AR2). Registration results in a stand-level point cloud for each 1 ha plot with 242 individual scan-level point clouds.
+
+Following the registration process, the next step involve the plot-level cloud points filtering, clipping and down-sampling. The filtering method was employed to remove points with a deviation greater than 15 and reflectance outside the range \[-20,5\]. After filtering, the data was clipped using a 20m buffer around the plot and segmented into 10m x 10m tiles. Finally, we down-scaled the cloud points using a voxelisation approach with a voxel size of 2 cm.
+
+To obtain individual trees we first applied two steps approach that involved semantic and instance segmentation. We run a semantic segmentation as an automatized process for cloud point classification into distinct biophysical components: leaf, wood, coarse woody debris or ground. Once we achieved the cloud point classification, we manually cleaned the cloud points to extract individual trees or entities in each of 1 ha plots.
+
+The main idea behind Quantitative Structural Models (QSM) is basically reconstruct the shape of a tree using know geometrical forms (e.g cylinders). This method consist of three steps which include i). Reduce each tree-level segmented cloud point to a number of paths, ii). Analyze the spatial arrangement and neighborhood relationship among patches and iii). Fitting cylinders to common patches. We quantify QSM model to each segmented entities using an unsupervised model using the raycloud sofware. Using the QSM model we estimate dendrometric variables such as DBH (cm), Height (m) and Volume (m^3^).
+
+#### Airborne LiDAR Scanning (ALS)
+
+Airborne LiDAR Scanning is based on Time-of-Flight physical principle through which it's possible to get a distance measure as the time elapse between an laser pulse emission and its subsequent return.
+
+Basically ALS processing involve these steps i).Point Cloud Classification, ii). Digital Terrain Model (DTM) generation, iii). Digital Surface Model (DTS) and Canopy Height model (CHM) generation and iv). Area based approach (ABA) to estimate canopy structure related variables.
+
+Point Cloud Classification is one the most important step, as the next stages in the entire workflow depends on it. To employ this classification, we filtered the points returns running both a Isolated Voxel Filter (IVF) identified as noise those points that had fewer than 100 points in relation to its 27 surrounding voxels. We also run a Statistical Outliers Removal (SOR) analysis to considered as noise those points that were 12 times further than the average distance between 60 neighbors points. Once we defined the noise points we employed a classify ground points using a Progressive Triangulated Irregular Network (TIN) Densification (PTD). This algorithm basically assess the likelihood of a subset of returns belonging to the ground surface integrating morphological and spatial filters.
+
+The second step in the pipeline consisted in reconstruct the Digital Terrain Model using triangulation interpolation. Once, we classified the cloud points we select only the ground points and used them to employed a triangular irregular network with linear interpolation using a Delaunay triangulation. Finally we rasterized the cloud point to generate 1 m^2^ resolution DTM.
+
+Digital Surface Model (DSM) is obtained using the highest non-ground points over a vegetated area. Several algorithms have been tested to represent accurately forest canopy structure, nevertheless different methods are less sensitives than others to ALS sampling related variables such as cloud point density, numbers of returns per shoot, scan angle, etc.
+
+To this study we estimated the DSM using the spikefree algorithm. Basically this method is a vertical constrained TIN interpolation which helps to remove or smooth spurious canopy points (spikes). The spikefree have shown a robust performance for vertical forest structure metrics. Finally we obtained the CHM as the difference between TIN DTM and spikefree DSM.
+
+Once DTM and CHM are obtained, we proceed to calculate canopy (vertical) forest structure metrics using an Area - based approach (ABA). Basically, ABA searched to get variables at stand level that captures the point structure in a given area of 2500 m^2^ (50 m resolution). We estimated variables associated to height forest distribution using 10th, 25th, 50th, 75th, 90th, 95th, and 99th percentiles and statistic such as mean, standard deviation, skweness and kurtosis. All the pipeline used to process ALS cloud points was implemented in R language using geospatial packages such as rLiDAR, lasR and Terra.
+
+#### Height and DBH allometry models
+
+Based on TLS workflow outcome we elaborated a dataset with individual tree Volume, Height, DBH. Using this data we estimate an allometry model to predict the height distribution based on DBH patterns. Particularly, we use a Bayesian regression analysis which involved three components: i). Likelihood probability distribution function, ii). A mathematical functional form with underlying mechanism and iii). Prior probability definition of unknown parameters.
+
+For this model we use a Gaussian probability distribution as a data likelihood function model component:
+
+$$
+H_{i} \sim Gaussian(f(DBH_{i},\Phi_{s}),\sigma^{2})
+$$
+
+Where the process model $f(.)$ predicts the expected value of height based on DBH (D). $\Phi_{s}$ represents the parameters related to model functional form $\{a,b,k\}$ while $\sigma$ parameters is associated with variance between predicted and observed values.
+
+We used a Weibull functional form to describe the underlying non - linear saturated relationship between height and diameter:
+
+$$
+f(H_{i}|a,b,k) = a(1-\exp(-bDBH^{k}))
+$$
+
+Finally we define weakly priors for functional forms parameters. We assume normal independent distribution for $a,b,k$ :
+
+$$
+P(a) \sim Gaussian(40,20)
+$$
+
+$$
+P(b) \sim Gaussian(0.05,0.5)
+$$
+
+$$
+P(k) \sim Gaussian(0.85,0.4)
+$$
+
+We also describe a non informative prior assuming half-Cauchy prior distributions with a scale parameter set to 2.5 for the observation variance $(\sigma)$
+
+#### Above ground Biomass (AGB) model
+
+To estimate AGB to each TLS segmented tree, we first used the Global Wood Density Database to assign the wood density through taxonomy imputation. Then we integrate these WD values and QSM based volume to obtain AGB.
+
+Once we estimate the AGB for each individual observation, we proceeded to model the AGB using as predictor variables tree Height, DBH and WD. Similarly to Height - DBH allometry we employed a bayesian regression analysis with the follow definition:
+
+$$
+AGB_{i} \sim Gamma(f(H_{i},DBH_{i},WD_{i},\Phi_{s}), \sigma^{2})
+$$
+
+Here we used a Gamma probability distribution as likelihood function due to naturally AGB only can be positive and capture possible monotonic variance increment conforming the average values increase as well (heterocedasticity).
+
+In the model definition we also propose a functional form that assumed an allometry relationship between observed AGB and a reference volume (cylinder) and wood density.
+
+$$
+f(AGB_{i}|\beta_{0},\beta_{1}) = \hat\beta_{0} (WD_{i}·H_{i}·DBH_{i})^{\hat\beta_{1}}
+$$
+
+Thus the AGB expected value is predicted by WD, H and DBH while $\hat\beta_{0}$ and $\hat{\beta_{1}}$ are parameter to estimate.
+
+We also used a weakly informative priors for $\hat\beta_{0}$ and $\hat{\beta_{1}}$ parameters. Particularly we assume a normal distributed parameters as:
+
+$$
+P(\beta_{0}) \sim Gaussian(1,10)
+$$
+
+$$
+P(\beta_{1}) \sim Gaussian(1,10)
+$$
+
+#### AGB Density and Canopy Height Structure Model
+
+To estimate stand AGB density (AGBD) in the plot, we first assigned WD values for each measured tree using taxonomical imputation from Global WD database. Then we applied AGB individual equation to each individual and sum the values to finally obtain the AGB density at quadrant plot levels (50 x 50 m).
+
+ABA allows to integrate the field plot inventory data and ALS metrics. At this point, we built a matrix where each row represent a plot quadrant and each column has different attributes from both field plot and ALS vertical structure stand metrics.
+
+Once we got a stand level dataset we estimate a model that relate AGB density with mean canopy height (MCH), particularly this proposed model establish a exponential relationship between this both variables:
+
+$$
+AGBD \sim Lognormal(\mu_{i},\sigma^{2})
+$$
+
+$$
+\mu_{i} = \hat{\beta_{0}} + \hat{\beta_{1}}·CMH
+$$
+
+In this model we assume a lognormal likelihood function from observed data. The expected value of AGBD then is define as a linear function of CMH. For this specific model we use a non informative priors for parameter $\beta_{0}$, $\beta_{1}$ and $\sigma^{2}$
+
+All the models were estimated using Monte Carlo Markov Chains (MCMC) methods. Posterior distribution was obtained from 4000 samples following 1000 burn-in iterations. Based on the posterior distribution of the deviance (specifically, the expectation of the log pointwise predictive density – ELP), we calculated the Watanabe information criterion (WAIC) to evaluate model performance. Models were fitted using brms R packages.
+
 ## Results
 
-#### Height and DBH Allometry
+*Height and DBH allometry models*
 
-```{r}
+Using TLS cloud point segmentation we obtained a dataset with tree DBH and Height measurements. The DBH ranges from 10.5 to 46.9 cm whereas Height varied between 12.4 and 46.9 m. Observations were unevenly spread out across species due to abundance distribution. Particularly in out dataset we record 27 *Eschweilera coriacea* individuals but for 82 species we only account for one single tree.
+
+According with regression analysis the estimate allometry model that predict height, H (m), from trunk diameter, DBH (cm) can be described as:
+
+$$
+H = 61.54(1-\exp(-0.08·DBH^{0.57}))
+$$
+
+The parameters values with the 95% posterior central intervals are asymptote a = \[45.92, 86.24\]~95%~ , scale or rate parameter b = \[0.06,0.1\]~95%~ and shape parameter k = \[0.49,0.66\]~95%~ According with bayesian R^2^ DBH explains about 82.34% \[0.8% - 0.84%\]~*95%*~ of height variation following a Weibull non-linear functional form. Performance
+
+```{r echo=FALSE}
 #| label: fig-height-allometry
 #| fig-cap: "Height-DBH allometric relationship from TLS."
 
@@ -48,9 +186,9 @@ plot_allometry
 
 ```
 
-#### AGB - CMH
+**AGB Model**
 
-```{r}
+```{r echo=FALSE}
 #| label: fig-agb-canopy
 #| fig-cap: "AGB density predicted by Canopy Height Model."
 
